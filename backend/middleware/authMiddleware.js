@@ -12,9 +12,12 @@ export const verifyJWT = async (req, res, next) => {
 
       const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
 
-      req.user = await User.findById(decodedToken?._id).select(
+      const user = await User.findById(decodedToken?._id).select(
         "-password -refreshToken"
       );
+
+      req.user = user;
+      req.userId = user._id;
       next();
     } catch (error) {
       res.status(401).json({ message: "Not authorized, token failed" });

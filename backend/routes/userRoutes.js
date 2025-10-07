@@ -1,8 +1,33 @@
 import express from "express";
 import { User } from "../models/User.js";
 import { verifyJWT } from "../middleware/authMiddleware.js";
+import multer from "multer";
+import path from "path";
 
 const router = express.Router();
+
+// Multer Setup
+const storage = multer.diskStorage({
+  destination(req, file, cb) {
+    cb(null, "uploads/");
+  },
+  filename(req, file, cb) {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  },
+});
+const upload = multer({
+  storage,
+  // fileFilter(req, file, cb) {
+  //   const fileTypes = /jpeg|jpg|png/;
+  //   const extname = fileTypes.test(
+  //     path.extname(file.originalname).toLowerCase()
+  //   );
+  //   if (extname) {
+  //     return cb(null, true);
+  //   }
+  //   cb("Only images are allowed");
+  // },
+});
 
 // Generate JWT Token
 const generateAccessTokenAndRefreshToken = async (userId) => {
@@ -106,5 +131,57 @@ router.post("/login", async (req, res) => {
 router.get("/profile", verifyJWT, async (req, res) => {
   res.json(req.user);
 });
+
+router.put("/profile", verifyJWT, async (req, res) => {
+  const { name, email } = req.body;
+  const user = await User.findByIdAndUpdate(
+    req.user?._id,
+    {
+      $set: {
+        name,
+        email: email,
+      },
+    },
+    { new: true }
+  ).select("-password");
+
+  if (user) {
+    res.json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+    });
+  } else {
+    res.status(404).json({ message: "User not found" });
+  }
+});
+
+router.post(
+  "/upload",
+  verifyJWT,
+  upload.single("profileImage"),
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      const user = await User.findById(req.user._id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      user.profileImage = `/uploads/${req.file.filename}`;
+      await user.save();
+
+      res.json({
+        message: "Image uploaded successfully",
+        profileImage: user.profileImage,
+      });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  }
+);
 
 export default router;
