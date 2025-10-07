@@ -1,5 +1,6 @@
 import express from "express";
 import { User } from "../models/User.js";
+import { verifyJWT } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -8,8 +9,6 @@ const generateAccessTokenAndRefreshToken = async (userId) => {
   const user = await User.findById(userId);
   const accessToken = user.generateAccessToken();
   const refreshToken = user.generateRefreshToken();
-  console.log("refreshToken: ", refreshToken);
-  console.log("accessToken: ", accessToken);
 
   user.refreshToken = refreshToken;
   await user.save({ validateBeforeSave: false });
@@ -101,6 +100,11 @@ router.post("/login", async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
+});
+
+// Get Profiile
+router.get("/profile", verifyJWT, async (req, res) => {
+  res.json(req.user);
 });
 
 export default router;
