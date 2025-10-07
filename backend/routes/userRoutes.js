@@ -3,6 +3,20 @@ import { User } from "../models/User.js";
 
 const router = express.Router();
 
+// Generate JWT Token
+const generateAccessTokenAndRefreshToken = async (userId) => {
+  const user = await User.findById(userId);
+  const accessToken = user.generateAccessToken();
+  const refreshToken = user.generateRefreshToken();
+  console.log("refreshToken: ", refreshToken);
+  console.log("accessToken: ", accessToken);
+
+  user.refreshToken = refreshToken;
+  await user.save({ validateBeforeSave: false });
+
+  return { accessToken };
+};
+
 // Registration router
 router.post("/register", async (req, res) => {
   const { name, email, password } = req.body;
@@ -64,15 +78,25 @@ router.post("/login", async (req, res) => {
 
     const isPasswordValid = await user.isPasswordCorrect(password);
 
+    // check password valid
     if (!isPasswordValid) {
       return res.status(401).json({ message: "Invalid user credentials" });
     }
 
+    const { accessToken } = await generateAccessTokenAndRefreshToken(user._id);
+
+    const options = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+    };
+
     return res.status(200).json({
       _id: user._id,
       name: user.name,
-      email: email.name,
+      email: user.name,
       profileImage: user.profileImage,
+      token: accessToken,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
