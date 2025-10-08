@@ -12,7 +12,7 @@ const app = express();
 
 // Middlewares
 app.use(bodyParser.json());
-app.use("/uploads", express.static(path.join(path.resolve(), "uploads")));
+app.use(express.static("uploads"));
 
 // Routes
 app.use("/api/v1/auth", userRoutes);

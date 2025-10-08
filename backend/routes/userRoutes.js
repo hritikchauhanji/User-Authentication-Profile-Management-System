@@ -15,18 +15,19 @@ const storage = multer.diskStorage({
     cb(null, `${Date.now()}-${file.originalname}`);
   },
 });
+
+const fileFilter = (req, file, cb) => {
+  const ext = path.extname(file.originalname).toLowerCase();
+  if (ext === ".png" || ext === ".jpg" || ext === ".jpeg") {
+    cb(null, true);
+  } else {
+    cb(new Error("Only images are allowed"));
+  }
+};
+
 const upload = multer({
   storage,
-  // fileFilter(req, file, cb) {
-  //   const fileTypes = /jpeg|jpg|png/;
-  //   const extname = fileTypes.test(
-  //     path.extname(file.originalname).toLowerCase()
-  //   );
-  //   if (extname) {
-  //     return cb(null, true);
-  //   }
-  //   cb("Only images are allowed");
-  // },
+  fileFilter,
 });
 
 // Generate JWT Token
@@ -34,6 +35,8 @@ const generateAccessTokenAndRefreshToken = async (userId) => {
   const user = await User.findById(userId);
   const accessToken = user.generateAccessToken();
   const refreshToken = user.generateRefreshToken();
+  console.log(accessToken);
+  console.log(refreshToken);
 
   user.refreshToken = refreshToken;
   await user.save({ validateBeforeSave: false });
@@ -132,6 +135,7 @@ router.get("/profile", verifyJWT, async (req, res) => {
   res.json(req.user);
 });
 
+// Update Profile
 router.put("/profile", verifyJWT, async (req, res) => {
   const { name, email } = req.body;
   const user = await User.findByIdAndUpdate(
