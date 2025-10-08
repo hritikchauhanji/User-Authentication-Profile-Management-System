@@ -3,6 +3,11 @@ import { User } from "../models/User.js";
 import { verifyJWT } from "../middleware/authMiddleware.js";
 import multer from "multer";
 import path from "path";
+import { v2 as cloudinary } from "cloudinary";
+import fs from "fs";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const router = express.Router();
 
@@ -16,6 +21,7 @@ const storage = multer.diskStorage({
   },
 });
 
+// file filter for multer
 const fileFilter = (req, file, cb) => {
   const ext = path.extname(file.originalname).toLowerCase();
   if (ext === ".png" || ext === ".jpg" || ext === ".jpeg") {
@@ -29,6 +35,35 @@ const upload = multer({
   storage,
   fileFilter,
 });
+
+// Cloudinary config
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_CLOUD_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// Cloudinary upload
+const uploadOnCloudinary = async (localFilePath) => {
+  try {
+    if (!localFilePath) return null;
+
+    // upload the file on cloudinary
+    const response = await cloudinary.uploader.upload(localFilePath, {
+      resource_type: "auto",
+    });
+
+    // file has been uploaded successfull
+    // console.log("file is uplaoded on cloudinary ", response.url);
+    fs.unlinkSync(localFilePath);
+    return response;
+  } catch (error) {
+    // remove the locally saved temporary file as the upload operation got failed
+    fs.unlinkSync(localFilePath);
+    console.error("Cloudinary upload error:", error.message);
+    return null;
+  }
+};
 
 // Generate JWT Token
 const generateAccessTokenAndRefreshToken = async (userId) => {
@@ -160,6 +195,7 @@ router.put("/profile", verifyJWT, async (req, res) => {
   }
 });
 
+// Upload Profile Image
 router.post(
   "/upload",
   verifyJWT,
@@ -175,7 +211,21 @@ router.post(
         return res.status(404).json({ message: "User not found" });
       }
 
-      user.profileImage = `/uploads/${req.file.filename}`;
+      const profileImageLocalPath = req.file?.path;
+
+      if (!profileImageLocalPath) {
+        return res.status(400, "Profile local path not found");
+      }
+
+      const profileImage = await uploadOnCloudinary(profileImageLocalPath);
+
+      console.log(profileImage.url);
+
+      if (!profileImage.url) {
+        return res.status(400, "Error while uploading on profileImage");
+      }
+
+      user.profileImage = profileImage.url;
       await user.save();
 
       res.json({

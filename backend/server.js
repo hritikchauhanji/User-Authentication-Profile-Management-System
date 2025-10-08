@@ -3,7 +3,6 @@ import dotenv from "dotenv";
 import express from "express";
 import userRoutes from "./routes/userRoutes.js";
 import bodyParser from "body-parser";
-import path from "path";
 
 dotenv.config();
 connectDB();
