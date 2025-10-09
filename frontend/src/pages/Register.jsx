@@ -21,37 +21,37 @@ function Register() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-bl from-blue-100 via-white to-purple-100">
+    <div className="flex flex-col  items-center justify-center mt-10">
       <form
         onSubmit={handleSubmit}
-        className="bg-white shadow-lg rounded-lg p-8 w-full max-w-md space-y-6"
+        className="shadow-lg rounded-lg border border-indigo-300 p-8 w-full max-w-md space-y-6"
       >
-        <h2 className="text-3xl font-bold text-center text-blue-800">
+        <h2 className="text-3xl font-bold text-center text-indigo-800">
           Sign up
         </h2>
         <input
           name="name"
           placeholder="Name"
-          className="w-full px-4 py-3 rounded border focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 rounded border focus:ring-2 focus:ring-indigo-500"
           onChange={handleChange}
         />
         <input
           name="email"
           type="email"
           placeholder="Email"
-          className="w-full px-4 py-3 rounded border focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 rounded border focus:ring-2 focus:ring-indigo-500"
           onChange={handleChange}
         />
         <input
           name="password"
           type="password"
           placeholder="Password"
-          className="w-full px-4 py-3 rounded border focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 rounded border focus:ring-2 focus:ring-indigo-500"
           onChange={handleChange}
         />
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white py-3 rounded font-semibold hover:bg-blue-700 transition"
+          className="w-full bg-indigo-600 text-white py-3 rounded font-semibold hover:bg-blue-700 transition"
         >
           Sign Up
         </button>

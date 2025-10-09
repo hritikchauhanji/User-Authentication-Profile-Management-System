@@ -23,10 +23,10 @@ function Login() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-indigo-100 to-gray-100">
+    <div className="flex flex-col items-center justify-center mt-10">
       <form
         onSubmit={handleSubmit}
-        className="bg-white shadow-lg rounded-lg p-8 w-full max-w-md space-y-6"
+        className="shadow-lg border border-indigo-300 rounded-lg p-8 w-full max-w-md space-y-6"
       >
         <h2 className="text-3xl font-bold text-center text-indigo-800">
           Sign in

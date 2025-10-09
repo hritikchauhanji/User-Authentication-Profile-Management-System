@@ -6,26 +6,30 @@ import Navbar from "./components/Navbar";
 import PrivateRoute from "./components/PrivateRoute";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer } from "react-toastify";
+import HeroGradient from "./components/HeroGradient";
 
 function App() {
   return (
-    <Router>
-      <ToastContainer position="top-center" autoClose={3000} />
-      <Navbar />
-      <Routes>
-        <Route path="/register" element={<Register />} />
-        <Route path="/login" element={<Login />} />
-        <Route
-          path="/profile"
-          element={
-            <PrivateRoute>
-              <Profile />
-            </PrivateRoute>
-          }
-        />
-        <Route path="*" element={<Login />} />
-      </Routes>
-    </Router>
+    <>
+      <HeroGradient />
+      <Router>
+        <Navbar />
+        <ToastContainer position="top-center" autoClose={3000} />
+        <Routes>
+          <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<Login />} />
+          <Route
+            path="/profile"
+            element={
+              <PrivateRoute>
+                <Profile />
+              </PrivateRoute>
+            }
+          />
+          <Route path="*" element={<Login />} />
+        </Routes>
+      </Router>
+    </>
   );
 }
 

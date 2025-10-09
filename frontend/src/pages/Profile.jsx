@@ -7,13 +7,6 @@ function Profile() {
   const [form, setForm] = useState({});
   const [image, setImage] = useState(null);
 
-  useEffect(() => {
-    api.get("/profile").then((res) => {
-      setProfile(res.data);
-      setForm({ name: res.data.name, email: res.data.email });
-    });
-  }, []);
-
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
   const handleProfileUpdate = async (e) => {
@@ -44,21 +37,29 @@ function Profile() {
     }
   };
 
+  useEffect(() => {
+    api.get("/profile").then((res) => {
+      setProfile(res.data);
+      setForm({ name: res.data.name, email: res.data.email });
+    });
+  }, [handleChange, handleImageChange, handleImageUpload, handleProfileUpdate]);
+
   if (!profile)
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        Loading...
-      </div>
-    );
+    return <div className="flex items-center justify-center">Loading...</div>;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-2">
-      <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md space-y-6">
-        <div className="flex flex-col items-center space-y-2">
+    <div className="flex flex-col items-center justify-center px-2 mt-10 ">
+      <div className="rounded-xl shadow-lg border border-indigo-300 p-8 w-full max-w-md space-y-6">
+        <div className="flex flex-col items-center justify-center space-y-2">
           <img
-            src={profile.profileImage || "https://via.placeholder.com/150"}
-            alt="Profile"
-            className="w-32 h-32 rounded-full object-cover mb-2 border-4 border-blue-200"
+            src={
+              profile.profileImage ||
+              `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                form.name || "User"
+              )}&background=8600e9&bold=true&color=fff`
+            }
+            alt=""
+            className="w-32 h-32 rounded-full object-cover mb-2 border-4 border-indigo-300 text-center"
           />
           <form
             onSubmit={handleImageUpload}
@@ -67,11 +68,11 @@ function Profile() {
             <input
               type="file"
               onChange={handleImageChange}
-              className="block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700"
+              className="block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:bg-blue-50 file:text-indigo-700"
             />
             <button
               type="submit"
-              className="bg-blue-600 text-white py-2 w-full rounded font-semibold hover:bg-blue-700 transition"
+              className="bg-indigo-600 text-white py-2 w-full rounded font-semibold hover:bg-indigo-700 transition"
             >
               Upload New Picture
             </button>
@@ -82,13 +83,13 @@ function Profile() {
             name="name"
             value={form.name}
             onChange={handleChange}
-            className="w-full px-4 py-3 rounded border focus:ring-2 focus:ring-blue-400"
+            className="w-full px-4 py-3 rounded border focus:ring-2 focus:ring-indigo-400"
           />
           <input
             name="email"
             value={form.email}
             onChange={handleChange}
-            className="w-full px-4 py-3 rounded border focus:ring-2 focus:ring-blue-400"
+            className="w-full px-4 py-3 rounded border focus:ring-2 focus:ring-indigo-400"
           />
           <button
             type="submit"

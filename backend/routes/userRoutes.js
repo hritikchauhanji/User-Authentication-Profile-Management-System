@@ -127,7 +127,7 @@ router.post("/login", async (req, res) => {
   try {
     // if email is required
     if (!email) {
-      return res.status(400, "email is required");
+      return res.status(400).json({ message: "email is required" });
     }
 
     // find user
@@ -135,7 +135,7 @@ router.post("/login", async (req, res) => {
 
     // find user is not exist
     if (!user) {
-      return res.status(404, "User is not exist");
+      return res.status(404).json({ message: "User is not exist" });
     }
 
     const isPasswordValid = await user.isPasswordCorrect(password);
