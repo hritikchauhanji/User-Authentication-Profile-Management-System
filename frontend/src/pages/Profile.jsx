@@ -42,7 +42,7 @@ function Profile() {
       setProfile(res.data);
       setForm({ name: res.data.name, email: res.data.email });
     });
-  }, [handleChange, handleImageChange, handleImageUpload, handleProfileUpdate]);
+  }, []);
 
   if (!profile)
     return <div className="flex items-center justify-center">Loading...</div>;

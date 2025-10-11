@@ -1,24 +1,33 @@
 import { useState } from "react";
 import api from "../api/axoisInstance";
 import { setToken } from "../utils/auth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 
 function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!form.email || !form.password) {
+      return toast.error("Please fill in all fields");
+    }
+
     try {
+      setLoading(true);
       const { data } = await api.post("/login", form);
       setToken(data.token);
       toast.success("Login successful!");
       navigate("/profile");
     } catch (err) {
-      toast.error(err.response?.data?.message || "Login failed");
+      toast.error(err.response?.data?.message || "Invalid email or password");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -31,11 +40,13 @@ function Login() {
         <h2 className="text-3xl font-bold text-center text-indigo-800">
           Sign in
         </h2>
+
         <input
           name="email"
           type="email"
           placeholder="Email"
           className="w-full px-4 py-3 rounded border focus:ring-2 focus:ring-indigo-500"
+          value={form.email}
           onChange={handleChange}
         />
         <input
@@ -43,13 +54,26 @@ function Login() {
           type="password"
           placeholder="Password"
           className="w-full px-4 py-3 rounded border focus:ring-2 focus:ring-indigo-500"
+          value={form.password}
           onChange={handleChange}
         />
+
+        {/* Forgot Password Link */}
+        <div className="text-right">
+          <Link
+            to="/forgot-password"
+            className="text-sm text-indigo-600 hover:text-indigo-800"
+          >
+            Forgot Password?
+          </Link>
+        </div>
+
         <button
           type="submit"
-          className="w-full bg-indigo-600 text-white py-3 rounded font-semibold hover:bg-indigo-700 transition"
+          disabled={loading}
+          className="w-full bg-indigo-600 text-white py-3 rounded font-semibold hover:bg-indigo-700 transition disabled:bg-gray-400"
         >
-          Login
+          {loading ? "Logging in..." : "Login"}
         </button>
       </form>
     </div>

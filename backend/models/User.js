@@ -24,6 +24,12 @@ const userSchema = new Schema(
       type: String,
       default: "",
     },
+    resetOtpHash: {
+      type: String,
+    },
+    resetOtpExpiresAt: {
+      type: Date,
+    },
   },
   { timestamps: true }
 );

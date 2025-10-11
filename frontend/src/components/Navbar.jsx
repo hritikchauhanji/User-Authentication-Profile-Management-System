@@ -10,7 +10,7 @@ function Navbar() {
 
   return (
     <nav className="text-indigo-600 py-4 px-6 shadow flex justify-between items-center">
-      <div className="text-lg font-bold">AuthApp</div>
+      <div className="text-lg font-bold">Profile Management System</div>
       <div className="flex space-x-6 items-center">
         <Link to="/" className="hidden md:block hover:text-gray-300">
           Home

@@ -6,8 +6,29 @@ import path from "path";
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
 import dotenv from "dotenv";
+import rateLimit from "express-rate-limit";
+import { sendMail } from "../utils/mailer.js";
+import bcrypt from "bcryptjs";
 
 dotenv.config();
+
+const OTP_EXPIRE_MINUTES = Number(process.env.OTP_EXPIRE_MINUTES) || 10;
+
+// generate 6 digits otp
+const generateNumbericOtp = (length = 6) => {
+  let otp = "";
+  for (let i = 0; i < length; i++) {
+    otp += Math.floor(Math.random() * 10);
+  }
+  return otp;
+};
+
+// rate limiter for forgot-password to prevent spam
+const forgotLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // max requests per 15 minutes per IP
+  message: { error: "Too many password reset requests, Try later." },
+});
 
 const router = express.Router();
 
@@ -235,5 +256,77 @@ router.post(
     }
   }
 );
+
+// forgot-password
+router.post("/forgot-password", forgotLimiter, async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: "Email required" });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+
+    const otp = generateNumbericOtp(6);
+    const otpHash = await bcrypt.hash(otp, 10);
+    const expiresAt = new Date(Date.now() + OTP_EXPIRE_MINUTES * 60 * 1000);
+
+    user.resetOtpHash = otpHash;
+    user.resetOtpExpiresAt = expiresAt;
+    await user.save();
+
+    // send email (simple template)
+    const subject = "Password reset OTP";
+    const html = `
+    <p>Hi,</p>
+    <p>Your OTP to reset your password is: </p>
+    <h2>${otp}</h2>
+    <p>This OTP is valid for ${OTP_EXPIRE_MINUTES} minutes.</p>
+    <p>If you didn't request this, please ignore this email.</p>
+    `;
+
+    await sendMail({ to: user.email, subject, html });
+    return res.status(200).json({ message: "You will receice an OTP." });
+  } catch (error) {
+    console.error("forgot-password error", error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// reset-password
+router.post("/reset-password", async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+
+    if (!email || !otp || !newPassword)
+      return res
+        .status(400)
+        .json({ message: "Email, OTP and new password required" });
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user || !user.resetOtpHash || !user.resetOtpExpiresAt) {
+      return res.status(400).json({ message: "Invalid request" });
+    }
+
+    if (new Date() > user.resetOtpExpiresAt)
+      return res.status(400).json({ message: "OTP expired" });
+
+    const isMatch = await bcrypt.compare(otp, user.resetOtpHash);
+    if (!isMatch) return res.status(400).json({ message: "Invalid OTP" });
+
+    user.password = newPassword; // bcrypt will hash this via pre-save hook
+    user.resetOtpHash = undefined;
+    user.resetOtpExpiresAt = undefined;
+    await user.save();
+
+    return res.json({ message: "Password has been reset successfully" });
+  } catch (err) {
+    console.error("reset-password error", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
 
 export default router;
