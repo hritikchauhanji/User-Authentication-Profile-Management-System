@@ -1,6 +1,6 @@
 import express from "express";
 import { User } from "../models/User.js";
-import { verifyJWT } from "../middleware/authMiddleware.js";
+import { authorizeRoles, verifyJWT } from "../middleware/authMiddleware.js";
 import multer from "multer";
 import path from "path";
 import { v2 as cloudinary } from "cloudinary";
@@ -177,6 +177,7 @@ router.post("/login", async (req, res) => {
       name: user.name,
       email: user.name,
       profileImage: user.profileImage,
+      role: user.role,
       token: accessToken,
     });
   } catch (error) {
@@ -237,8 +238,6 @@ router.post(
       }
 
       const profileImage = await uploadOnCloudinary(profileImageLocalPath);
-
-      console.log(profileImage.url);
 
       if (!profileImage.url) {
         return res.status(400, "Error while uploading on profileImage");
@@ -328,5 +327,48 @@ router.post("/reset-password", async (req, res) => {
     return res.status(500).json({ error: "Server error" });
   }
 });
+
+// Get all users (Admin only)
+router.get(
+  "/admin/users",
+  verifyJWT,
+  authorizeRoles("admin"),
+  async (req, res) => {
+    try {
+      // Fetch only non-admin users
+      const users = await User.find({ role: { $ne: "admin" } }).select(
+        "-password -refreshToken -resetOtpHash -resetOtpExpiresAt"
+      );
+
+      res.status(200).json({
+        message: "Fetched users successfully",
+        users,
+      });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  }
+);
+
+// Delete user by ID (Admin only)
+router.delete(
+  "/admin/users/:id",
+  verifyJWT,
+  authorizeRoles("admin"),
+  async (req, res) => {
+    try {
+      const user = await User.findById(req.params.id);
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      await user.deleteOne();
+      res.status(200).json({ message: "User deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  }
+);
 
 export default router;

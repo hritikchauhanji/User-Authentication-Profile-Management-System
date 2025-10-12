@@ -23,8 +23,13 @@ function Login() {
       setLoading(true);
       const { data } = await api.post("/login", form);
       setToken(data.token);
+      localStorage.setItem("role", data.role);
       toast.success("Login successful!");
-      navigate("/profile");
+      if (data.role === "admin") {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/profile");
+      }
     } catch (err) {
       toast.error(err.response?.data?.message || "Invalid email or password");
     } finally {

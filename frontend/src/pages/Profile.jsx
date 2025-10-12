@@ -9,11 +9,12 @@ function Profile() {
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
+
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
     try {
       const { data } = await api.put("/profile", form);
-      setProfile(data);
+      setProfile((prev) => ({ ...prev, ...data }));
       toast.success("Profile updated!");
     } catch (err) {
       toast.error(err.response?.data?.message || "Update failed!");
@@ -21,6 +22,7 @@ function Profile() {
   };
 
   const handleImageChange = (e) => setImage(e.target.files[0]);
+
   const handleImageUpload = async (e) => {
     e.preventDefault();
     if (!image) return;

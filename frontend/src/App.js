@@ -4,11 +4,13 @@ import Login from "./pages/Login";
 import Profile from "./pages/Profile";
 import Navbar from "./components/Navbar";
 import PrivateRoute from "./components/PrivateRoute";
+import AdminRoute from "./components/AdminRoute";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer } from "react-toastify";
 import HeroGradient from "./components/HeroGradient";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import AdminDashboard from "./pages/AdminDashboard";
 
 function App() {
   return (
@@ -22,6 +24,8 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+
+          {/* User-only route */}
           <Route
             path="/profile"
             element={
@@ -30,6 +34,17 @@ function App() {
               </PrivateRoute>
             }
           />
+
+          {/* Admin-only route */}
+          <Route
+            path="/admin/dashboard"
+            element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
+            }
+          />
+
           <Route path="*" element={<Login />} />
         </Routes>
       </Router>
