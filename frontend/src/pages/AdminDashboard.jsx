@@ -31,12 +31,12 @@ function AdminDashboard() {
   }, [handleDelete]);
 
   return (
-    <div className="min-h-screen p-6 bg-gray-50">
+    <div className="min-h-screen p-6 ">
       <h1 className="text-3xl font-bold text-indigo-700 mb-6 text-center">
         Admin Dashboard
       </h1>
 
-      <div className="overflow-x-auto shadow-lg rounded-xl bg-white">
+      <div className="overflow-x-auto shadow-lg rounded-xl">
         <table className="min-w-full border-collapse">
           <thead className="bg-indigo-600 text-white">
             <tr>
